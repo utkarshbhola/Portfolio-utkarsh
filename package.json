@@ -1,0 +1,20 @@
+{
+  "name": "utkarsh-portfolio",
+  "version": "1.0.0",
+  "description": "Portfolio site with secure blog admin and SQLite-backed content management.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node --watch app.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "marked": "^15.0.0",
+    "multer": "^2.0.2",
+    "sql.js": "^1.13.1"
+  }
+}

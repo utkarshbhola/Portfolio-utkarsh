@@ -1,0 +1,11 @@
+[
+  {
+    "slug": "hello-world",
+    "title": "Hello, world",
+    "description": "Why I built this portfolio and how I think about engineering, systems, and product work.",
+    "summary": "Why I built this portfolio and how I think about engineering, systems, and product work.",
+    "date": "2026-09-30",
+    "tags": ["engineering", "systems", "ai"],
+    "author": "Utkarsh Bhola"
+  }
+]
