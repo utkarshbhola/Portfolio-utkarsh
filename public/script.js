@@ -3,9 +3,9 @@ const siteData = {
   role: 'Software Engineer building distributed systems, AI applications, and products.',
   summary: 'I design and ship backend systems, AI-powered products, and developer tooling with a strong emphasis on reliability, clarity, and practical impact.',
   socials: [
-    { label: 'GitHub', href: '#', aria: 'GitHub' },
-    { label: 'LinkedIn', href: '#', aria: 'LinkedIn' },
-    { label: 'Email', href: 'mailto:hello@utkarshbhola.dev', aria: 'Email' }
+    { label: 'GitHub', href: 'https://github.com/utkarshbhola', aria: 'GitHub' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/utkarsh-bhola-639081172/', aria: 'LinkedIn' },
+    { label: 'Email', href: 'mailto:utkarsh.bhola31@gmail.com', aria: 'Email' }
   ],
   about: [
     'I am a software engineer with a systems-first mindset. My work sits at the intersection of backend engineering, AI product development, and product building, with a focus on shipping reliable systems that people can trust.',
@@ -105,9 +105,9 @@ const siteData = {
     { icon: 'DT', title: 'Developer tools', text: 'I enjoy building tools that improve speed, confidence, and operational clarity for teams.' }
   ],
   contact: {
-    email: 'hello@utkarshbhola.dev',
-    linkedin: '#',
-    github: '#'
+    email: 'utkarsh.bhola31@gmail.com',
+    linkedin: 'https://www.linkedin.com/in/utkarsh-bhola-639081172/',
+    github: 'https://github.com/utkarshbhola'
   }
 };
 

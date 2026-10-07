@@ -536,9 +536,9 @@ const renderHomePage = () => {
           <section class="section-shell" id="contact">
             <div class="eyebrow">Contact</div>
             <div class="contact-grid">
-              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">Email</div><strong>hello@utkarshbhola.dev</strong></div><a href="mailto:hello@utkarshbhola.dev">Reach out</a></article>
-              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">LinkedIn</div><strong>Professional profile</strong></div><a href="#">Reach out</a></article>
-              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">GitHub</div><strong>Code and projects</strong></div><a href="#">Reach out</a></article>
+              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">Email</div><strong>utkarsh.bhola31@gmail.com</strong></div><a href="mailto:utkarsh.bhola31@gmail.com">Reach out</a></article>
+              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">LinkedIn</div><strong>Professional profile</strong></div><a href="https://www.linkedin.com/in/utkarsh-bhola-639081172/" target="_blank" rel="noreferrer">Reach out</a></article>
+              <article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">GitHub</div><strong>Code and projects</strong></div><a href="https://github.com/utkarshbhola" target="_blank" rel="noreferrer">Reach out</a></article>
             </div>
           </section>
         </main>
@@ -663,7 +663,7 @@ const renderContactPage = () => `
     </head>
     <body>
       <header class="site-header"><div class="inner"><a class="brand" href="/"><span>Utkarsh</span> Bhola</a><nav class="site-nav" aria-label="Main navigation"><a class="nav-link" href="/">Home</a><a class="nav-link" href="/about">About</a><a class="nav-link" href="/projects">Projects</a><a class="nav-link" href="/blog">Blog</a><a class="nav-link active" href="/contact">Contact</a></nav></div></header>
-      <div class="page-shell"><main><section class="section-shell"><div class="eyebrow">Contact</div><div class="contact-grid"><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">Email</div><strong>hello@utkarshbhola.dev</strong></div><a href="mailto:hello@utkarshbhola.dev">Reach out</a></article><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">LinkedIn</div><strong>Professional profile</strong></div><a href="#">Reach out</a></article><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">GitHub</div><strong>Code and projects</strong></div><a href="#">Reach out</a></article></div></section></main></div>
+      <div class="page-shell"><main><section class="section-shell"><div class="eyebrow">Contact</div><div class="contact-grid"><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">Email</div><strong>utkarsh.bhola31@gmail.com</strong></div><a href="mailto:utkarsh.bhola31@gmail.com">Reach out</a></article><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">LinkedIn</div><strong>Professional profile</strong></div><a href="https://www.linkedin.com/in/utkarsh-bhola-639081172/" target="_blank" rel="noreferrer">Reach out</a></article><article class="contact-card"><div><div class="eyebrow" style="margin-bottom:8px;">GitHub</div><strong>Code and projects</strong></div><a href="https://github.com/utkarshbhola" target="_blank" rel="noreferrer">Reach out</a></article></div></section></main></div>
     </body>
   </html>
 `;
