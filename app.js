@@ -12,14 +12,17 @@ dotenv.config();
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
+const isVercel = process.env.VERCEL === '1';
 const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const UPLOAD_DIR = path.join(ROOT_DIR, 'uploads');
 const DB_PATH = path.join(DATA_DIR, 'portfolio.sqlite');
 const PHOTO_PATH = path.join(ROOT_DIR, 'assets', 'WhatsApp Image 2026-09-30 at 17.56.40.jpeg');
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+if (!isVercel) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 
 const projectData = {
   riftkv: {
@@ -113,11 +116,14 @@ const sqlInit = async () => {
 
   db.run(`CREATE INDEX IF NOT EXISTS idx_posts_status_published_at ON posts(status, published_at DESC);`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_posts_slug ON posts(slug);`);
-  saveDb(db);
+  if (!isVercel) saveDb(db);
   return db;
 };
 
 const saveDb = (db) => {
+  if (isVercel) {
+    throw new Error('SQLite file persistence is unavailable on Vercel. Configure durable storage before enabling CMS writes.');
+  }
   const data = db.export();
   fs.writeFileSync(DB_PATH, Buffer.from(data));
 };
@@ -169,6 +175,13 @@ const requireAuth = (req, res, next) => {
     return next();
   }
   return res.redirect('/admin/login');
+};
+
+const requireLocalStorage = (req, res, next) => {
+  if (isVercel) {
+    return res.status(503).send('CMS changes and cover uploads require durable storage, which is not configured for this deployment.');
+  }
+  return next();
 };
 
 const slugify = (value = '') => {
@@ -903,7 +916,7 @@ app.get('/admin/blog/new', requireAuth, (req, res) => {
   res.send(renderAdminEditor());
 });
 
-app.post('/admin/blog/new', requireAuth, upload.single('cover'), (req, res) => {
+app.post('/admin/blog/new', requireAuth, requireLocalStorage, upload.single('cover'), (req, res) => {
   const { title, slug, description, content, author, tags, status, featured, action, published_at } = req.body;
   const safeSlug = slugify(slug || title);
   const existing = queryOne('SELECT id FROM posts WHERE slug = ?', [safeSlug]);
@@ -938,7 +951,7 @@ app.get('/admin/blog/:id/edit', requireAuth, (req, res) => {
   res.send(renderAdminEditor(post));
 });
 
-app.post('/admin/blog/:id/edit', requireAuth, upload.single('cover'), (req, res) => {
+app.post('/admin/blog/:id/edit', requireAuth, requireLocalStorage, upload.single('cover'), (req, res) => {
   const post = getPostRow(req.params.id);
   if (!post) return res.status(404).send('Post not found');
 
@@ -965,7 +978,7 @@ app.post('/admin/blog/:id/edit', requireAuth, upload.single('cover'), (req, res)
   res.redirect('/admin/blog');
 });
 
-app.post('/admin/blog/:id/delete', requireAuth, (req, res) => {
+app.post('/admin/blog/:id/delete', requireAuth, requireLocalStorage, (req, res) => {
   executeWrite('DELETE FROM posts WHERE id = ?', [req.params.id]);
   saveDb(db);
   res.redirect('/admin/blog');
