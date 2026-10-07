@@ -87,7 +87,9 @@ const escapeHtml = (value = '') => String(value)
   .replace(/'/g, '&#039;');
 
 const sqlInit = async () => {
-  const SQL = await initSqlJs();
+  const SQL = await initSqlJs({
+    locateFile: (file) => path.join(path.dirname(require.resolve('sql.js')), file)
+  });
   let db;
   if (fs.existsSync(DB_PATH)) {
     const binary = fs.readFileSync(DB_PATH);
