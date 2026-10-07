@@ -1,7 +1,7 @@
 {
   "functions": {
     "**": {
-      "includeFiles": "node_modules/sql.js/dist/**"
+      "includeFiles": "posts/**"
     }
   }
 }

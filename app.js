@@ -16,6 +16,7 @@ const isVercel = process.env.VERCEL === '1';
 const ROOT_DIR = __dirname;
 const DATA_DIR = path.join(ROOT_DIR, 'data');
 const UPLOAD_DIR = path.join(ROOT_DIR, 'uploads');
+const POSTS_DIR = path.join(ROOT_DIR, 'posts');
 const DB_PATH = path.join(DATA_DIR, 'portfolio.sqlite');
 const PHOTO_PATH = path.join(ROOT_DIR, 'assets', 'WhatsApp Image 2026-09-30 at 17.56.40.jpeg');
 
@@ -131,8 +132,10 @@ const saveDb = (db) => {
 };
 
 let db;
+let databaseReady = false;
 async function bootstrapDatabase() {
   db = await sqlInit();
+  databaseReady = true;
 }
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -182,6 +185,13 @@ const requireAuth = (req, res, next) => {
 const requireLocalStorage = (req, res, next) => {
   if (isVercel) {
     return res.status(503).send('CMS changes and cover uploads require durable storage, which is not configured for this deployment.');
+  }
+  return next();
+};
+
+const requireDatabase = (req, res, next) => {
+  if (!databaseReady) {
+    return res.status(503).send('The local SQLite CMS is unavailable.');
   }
   return next();
 };
@@ -265,6 +275,25 @@ const getPublicPosts = () => {
     tags: JSON.parse(post.tags || '[]')
   }));
 };
+
+let staticPublicPosts;
+const getStaticPublicPosts = () => {
+  if (!staticPublicPosts) {
+    const posts = JSON.parse(fs.readFileSync(path.join(POSTS_DIR, 'index.json'), 'utf8'));
+    staticPublicPosts = posts.map((post, index) => ({
+      ...post,
+      id: index + 1,
+      content: fs.readFileSync(path.join(POSTS_DIR, `${post.slug}.md`), 'utf8'),
+      published_at: post.date,
+      tags: post.tags || []
+    }));
+  }
+  return staticPublicPosts;
+};
+
+const getPortfolioPosts = () => (
+  isVercel || !databaseReady ? getStaticPublicPosts() : getPublicPosts()
+);
 
 const getFeaturedPost = () => {
   const row = queryOne(`SELECT * FROM posts WHERE status = 'published' AND featured = 1 ORDER BY published_at DESC LIMIT 1`);
@@ -384,7 +413,7 @@ const renderHomePage = () => {
     </article>
   `).join('');
 
-  const posts = getPublicPosts().slice(0, 3);
+  const posts = getPortfolioPosts().slice(0, 3);
   const blogCards = posts.map((post) => `
     <article class="blog-card">
       <div class="card-content">
@@ -679,7 +708,7 @@ const renderBlogDetail = (post) => {
     text: match[1].trim()
   }));
   const content = renderMarkdown(post.content || '');
-  const related = getPublicPosts().filter((item) => item.id !== post.id).slice(0, 2);
+  const related = getPortfolioPosts().filter((item) => item.id !== post.id).slice(0, 2);
 
   return `
   <!DOCTYPE html>
@@ -735,7 +764,7 @@ const renderBlogDetail = (post) => {
 };
 
 const renderBlogIndex = () => {
-  const posts = getPublicPosts();
+  const posts = getPortfolioPosts();
   const featured = posts[0] || null;
   const more = posts.slice(1);
   return `
@@ -886,7 +915,9 @@ app.get('/blog', (req, res) => {
 });
 
 app.get('/blog/:slug', (req, res) => {
-  const post = getPostBySlug(req.params.slug, false);
+  const post = isVercel || !databaseReady
+    ? getStaticPublicPosts().find((item) => item.slug === req.params.slug)
+    : getPostBySlug(req.params.slug, false);
   if (!post) return res.status(404).send('Post not found');
   res.send(renderBlogDetail(post));
 });
@@ -910,15 +941,15 @@ app.post('/admin/logout', requireAuth, (req, res) => {
 });
 
 app.get('/admin', requireAuth, (req, res) => res.redirect('/admin/blog'));
-app.get('/admin/blog', requireAuth, (req, res) => {
+app.get('/admin/blog', requireAuth, requireDatabase, (req, res) => {
   res.send(renderAdminDashboard(adminPostsQuery()));
 });
 
-app.get('/admin/blog/new', requireAuth, (req, res) => {
+app.get('/admin/blog/new', requireAuth, requireDatabase, (req, res) => {
   res.send(renderAdminEditor());
 });
 
-app.post('/admin/blog/new', requireAuth, requireLocalStorage, upload.single('cover'), (req, res) => {
+app.post('/admin/blog/new', requireAuth, requireDatabase, requireLocalStorage, upload.single('cover'), (req, res) => {
   const { title, slug, description, content, author, tags, status, featured, action, published_at } = req.body;
   const safeSlug = slugify(slug || title);
   const existing = queryOne('SELECT id FROM posts WHERE slug = ?', [safeSlug]);
@@ -946,14 +977,14 @@ app.post('/admin/blog/new', requireAuth, requireLocalStorage, upload.single('cov
   res.redirect('/admin/blog');
 });
 
-app.get('/admin/blog/:id/edit', requireAuth, (req, res) => {
+app.get('/admin/blog/:id/edit', requireAuth, requireDatabase, (req, res) => {
   const post = getPostRow(req.params.id);
   if (!post) return res.status(404).send('Post not found');
   post.tags = JSON.parse(post.tags || '[]');
   res.send(renderAdminEditor(post));
 });
 
-app.post('/admin/blog/:id/edit', requireAuth, requireLocalStorage, upload.single('cover'), (req, res) => {
+app.post('/admin/blog/:id/edit', requireAuth, requireDatabase, requireLocalStorage, upload.single('cover'), (req, res) => {
   const post = getPostRow(req.params.id);
   if (!post) return res.status(404).send('Post not found');
 
@@ -980,7 +1011,7 @@ app.post('/admin/blog/:id/edit', requireAuth, requireLocalStorage, upload.single
   res.redirect('/admin/blog');
 });
 
-app.post('/admin/blog/:id/delete', requireAuth, requireLocalStorage, (req, res) => {
+app.post('/admin/blog/:id/delete', requireAuth, requireDatabase, requireLocalStorage, (req, res) => {
   executeWrite('DELETE FROM posts WHERE id = ?', [req.params.id]);
   saveDb(db);
   res.redirect('/admin/blog');
@@ -992,14 +1023,15 @@ app.use((req, res) => {
   res.status(404).send('Page not found');
 });
 
-bootstrapDatabase().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Portfolio server running on http://localhost:${PORT}`);
-    if (!isProduction && ADMIN_PASSWORD === 'change-me-please') {
-      console.warn('Using the development admin password. Set ADMIN_USERNAME and ADMIN_PASSWORD before deployment.');
-    }
-  });
-}).catch((error) => {
-  console.error('Failed to initialize SQLite database:', error);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`Portfolio server running on http://localhost:${PORT}`);
+  if (!isProduction && ADMIN_PASSWORD === 'change-me-please') {
+    console.warn('Using the development admin password. Set ADMIN_USERNAME and ADMIN_PASSWORD before deployment.');
+  }
+
+  if (!isVercel) {
+    bootstrapDatabase().catch((error) => {
+      console.error('Failed to initialize SQLite database:', error);
+    });
+  }
 });
